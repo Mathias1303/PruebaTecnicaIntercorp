@@ -1,0 +1,20 @@
+# Maven/Gradle
+**/target/
+**/build/
+
+# IntelliJ/VSCode
+.idea/
+*.iml
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Node
+**/node_modules/
+**/dist/
+.env
