@@ -21,16 +21,17 @@ import java.util.stream.Collectors;
 @Service
 public class CustomerService {
 
-    @Autowired
-    private InvoiceRecordRepository invoiceRecordRepository;
+    private final InvoiceRecordRepository invoiceRecordRepository;
+    private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public CustomerService(InvoiceRecordRepository invoiceRecordRepository, ObjectMapper objectMapper) {
+        this.invoiceRecordRepository = invoiceRecordRepository;
+        this.objectMapper = objectMapper;
+    }
 
     public List<CustomerDto> findPersonsByName(String name) {
-        // 1. Buscar en la BD usando el método eficiente del repositorio
         List<InvoiceRecord> foundRecords = invoiceRecordRepository.findByPersonFirstNameInJson(name);
-
-        // 2. Mapear los resultados a una lista de CustomerDto
         return foundRecords.stream()
                 .map(this::extractPersonFromRecord)
                 .filter(Optional::isPresent)
