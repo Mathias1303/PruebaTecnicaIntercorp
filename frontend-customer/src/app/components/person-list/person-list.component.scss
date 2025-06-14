@@ -1,0 +1,43 @@
+.container {
+  padding: 20px;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  mat-form-field {
+    flex-grow: 1;
+    max-width: 400px;
+  }
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px;
+}
+
+.table-container {
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+}
+
+.last-updated {
+    margin-top: 16px;
+    color: #666;
+    font-size: 14px;
+}
+
+// Estilos para la cabecera de la tabla
+:host ::ng-deep .mat-mdc-table .mat-mdc-header-cell {
+  background-color: #3f51b5;
+  color: white;
+  font-weight: bold;
+}
