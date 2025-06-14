@@ -1,4 +1,4 @@
-package com.interview.intercorp.ms04.service;
+package com.interview.intercorp.ms04.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,9 +8,9 @@ import com.interview.intercorp.ms04.dto.PersonListResponseDto;
 import com.interview.intercorp.ms04.dto.RootDto;
 import com.interview.intercorp.ms04.model.InvoiceRecord;
 import com.interview.intercorp.ms04.repository.InvoiceRecordRepository;
+import com.interview.intercorp.ms04.service.ICustomerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class CustomerService {
+public class CustomerService implements ICustomerService {
 
     private final InvoiceRecordRepository invoiceRecordRepository;
     private final ObjectMapper objectMapper;
@@ -54,13 +54,20 @@ public class CustomerService {
         try {
             JsonNode fullJsonTree = objectMapper.readTree(record.getJsonData());
             JsonNode rootNode = fullJsonTree.path("root");
-            if (rootNode.isMissingNode()) {
-                logger.error("El JSON del registro con ID {} no contiene la llave 'root' de nivel superior.", record.getId());
+            if (rootNode.isMissingNode()) return Optional.empty();
+
+            RootDto rootDto = objectMapper.treeToValue(rootNode, RootDto.class);
+            CustomerDto person = rootDto.getPerson();
+
+            if (person == null) {
                 return Optional.empty();
             }
-            RootDto root = objectMapper.treeToValue(rootNode, RootDto.class);
-            return Optional.ofNullable(root.getPerson());
+            person.setDate(rootDto.getDate());
+            person.setRandom(rootDto.getRandom());
+            person.setRandomFloat(rootDto.getRandomFloat());
+            person.setEnumValue(rootDto.getEnumValue());
 
+            return Optional.of(person);
         } catch (JsonProcessingException e) {
             logger.error("No se pudo parsear el JSON para el registro con ID: {}", record.getId(), e);
             return Optional.empty();

@@ -2,7 +2,7 @@ package com.interview.intercorp.ms04.controller;
 
 import com.interview.intercorp.ms04.dto.CustomerDto;
 import com.interview.intercorp.ms04.dto.PersonListResponseDto;
-import com.interview.intercorp.ms04.service.CustomerService;
+import com.interview.intercorp.ms04.service.impl.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,6 +1,10 @@
 package com.interview.intercorp.ms04.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class CustomerDto {
 
     private String country;
@@ -11,60 +15,9 @@ public class CustomerDto {
     private String email;
     private String lastname;
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getFirstname2() {
-        return firstname2;
-    }
-
-    public void setFirstname2(String firstname2) {
-        this.firstname2 = firstname2;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getLastname2() {
-        return lastname2;
-    }
-
-    public void setLastname2(String lastname2) {
-        this.lastname2 = lastname2;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
+    private String date;
+    private int random;
+    private double randomFloat;
+    private String enumValue;
 
 }

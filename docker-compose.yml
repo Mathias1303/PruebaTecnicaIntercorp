@@ -1,0 +1,139 @@
+version: '3.9'
+
+services:
+  # Base de Datos PostgreSQL
+  db:
+    image: postgres:17-alpine
+    container_name: database
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysql
+      - POSTGRES_DB=db_customer
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Corregido para usar el usuario y BD correctos definidos en el environment
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_customer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper (Requerido por Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  # Kafka Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: kafka
+    ports:
+      # Puerto para comunicación externa (desde tu máquina)
+      - "9092:9092"
+      # Puerto para comunicación interna entre contenedores
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  # Microservicio 05 (Lector de XML)
+  microservice-05:
+    build: ./ms-05 # Busca el Dockerfile en la carpeta ./ms-05
+    container_name: microservice-05
+    ports:
+      - "8085:8080"
+    depends_on:
+      - kafka
+    environment:
+      # Sobrescribimos las variables para que apunten a los servicios de Docker
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - APP_XML_INPUT_DIR=/customer-data/input
+      - APP_XML_PROCESSED_DIR=/customer-data/processed
+      - APP_XML_ERROR_DIR=/customer-data/error
+    volumes:
+      # Mapeamos las carpetas locales a las carpetas definidas en el Dockerfile de ms-05
+      - ./customer-data/input:/customer-data/input
+      - ./customer-data/processed:/customer-data/processed
+      - ./customer-data/error:/customer-data/error
+
+  # --- NUEVO SERVICIO: Microservicio 02 ---
+  microservice-02:
+    build: ./ms-02 # Busca el Dockerfile en la carpeta ./ms-02
+    container_name: microservice-02
+    ports:
+      - "8082:8082" # Mapea el puerto del contenedor (8082) al puerto del host (8082)
+    depends_on:
+      - kafka # Se asegura de que Kafka inicie antes que este servicio
+    environment:
+      # Aquí definimos las variables de entorno que nuestro application.properties leerá
+      - SERVER_PORT=8082
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092 # Usa el nombre del servicio 'kafka' y el puerto interno
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=ms02-processor-group-docker
+      - APP_KAFKA_INPUT_TOPIC=xml_a_json_topic
+      - APP_KAFKA_OUTPUT_TOPIC=json_procesado_topic
+
+  microservice-01:
+    build: ./ms-01 # Busca el Dockerfile en la carpeta ./ms-01
+    container_name: microservice-01
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka # Depende de Kafka para consumir mensajes
+      - db    # Depende de la BD para guardar datos
+    environment:
+      - SERVER_PORT=8081
+      # --- Conexión a la base de datos ---
+      # La URL apunta al servicio 'db' en el puerto de PostgreSQL '5432'
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/db_customer
+      # Las credenciales deben coincidir con las definidas en el servicio 'db'
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=mysql
+      # --- Conexión a Kafka ---
+      # Apunta al servicio 'kafka' usando el listener interno '29092'
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=ms01-db-saver-group-docker
+      - APP_KAFKA_INPUT_TOPIC=xml_a_json_topic  
+      
+  microservice-04:
+    build: ./ms-04 # Busca el Dockerfile en la carpeta ./ms-04
+    container_name: microservice-04
+    ports:
+      - "8088:8088" # Expone el puerto para que Angular pueda consumirlo
+    depends_on:
+      - kafka # Depende de Kafka para consumir mensajes
+      - db    # Depende de la BD para consultar datos
+    environment:
+      - SERVER_PORT=8088
+      # --- Conexión a la base de datos ---
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/db_customer
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=mysql
+      # --- Conexión a Kafka ---
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - APP_KAFKA_INPUT_TOPIC=json_procesado_topic    
+
+  angular-front:
+    build:
+      context: ./frontend-customer # Ruta a la carpeta del proyecto Angular
+    container_name: angular-front
+    ports:
+      # Mapeamos el puerto 80 del contenedor Nginx al puerto 4200 de nuestra máquina.
+      # Así, puedes acceder a la app en http://localhost:4200
+      - "4200:80"
+    depends_on:
+      # Nos aseguramos de que el backend esté listo antes de iniciar el frontend
+      - microservice-04    
+
+volumes:
+  postgres_data:

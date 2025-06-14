@@ -10,7 +10,7 @@ import { ApiService } from 'src/app/services/api.service';
 })
 export class PersonListComponent implements OnInit {
 
-  public displayedColumns: string[] = ['firstname', 'lastname', 'email', 'country', 'city'];
+  public displayedColumns: string[] = ['firstname', 'lastname', 'email', 'country', 'city',  'firstname2', 'lastname2', 'date', 'random', 'randomFloat', 'enumValue'];
 
   public searchControl = new FormControl('');
   public response: PersonListResponseDto | null = null;

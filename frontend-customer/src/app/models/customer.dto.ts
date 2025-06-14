@@ -6,4 +6,8 @@ export interface CustomerDto {
   lastname2: string;
   email: string;
   lastname: string;
+  date: string;
+  random: number;
+  randomFloat: number;
+  enumValue: string;
 }
