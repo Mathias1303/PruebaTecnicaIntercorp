@@ -20,7 +20,7 @@ El sistema se compone de varios servicios desacoplados, cada uno con una respons
 
 #### 4. Exposición de Datos:
 
-* ms-04 (API Service): Consume los mensajes del segundo tópico y se conecta a la base de datos para ofrecer endpoints REST con la información procesada y actualizada.
+* ms-04 (API Service): Consume los mensajes del segundo tópico y hace comparación con los JSON enviados anteriormente por el ms-01 y se conecta a la base de datos para ofrecer endpoints REST con la información procesada y actualizada.
 
 #### 5. Interfaz de Usuario:
 
@@ -30,7 +30,7 @@ El sistema se compone de varios servicios desacoplados, cada uno con una respons
 
 * Backend: Java 17, Spring Boot 3.x
 
-* Frontend: Angular 15, TypeScript
+* Frontend: Angular 15, Angular Material, TypeScript
 
 * Mensajería: Apache Kafka
 
