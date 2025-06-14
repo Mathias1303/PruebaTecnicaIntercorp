@@ -87,9 +87,9 @@ Este comando orquestará la creación de la red, volúmenes, y contenedores para
 
 2. Iniciar el Flujo:
 
-    * Cree un archivo XML (p. ej., cliente.xml) con la estructura adecuada.
+    * Los archivos XML ya se encuentran dentro de la carpeta /customer-data/input.
 
-    * Coloque ese archivo en la carpeta customer-data/input en la raíz del proyecto.
+    * Una vez se inicia el flujo se irán enviando los archivos XML a la carpeta /customer-data/processed.
 
 3. Verificar los Logs: Observe la salida de docker-compose en su terminal. Verá la actividad secuencial de ms-05, ms-01 y ms-02.
 
